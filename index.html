@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control Financiero Personal - Noviembre 2026 (S/)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">S/</div>
+      <div>
+        <h1>Control Financiero Personal</h1>
+        <p class="subtitle">Noviembre 2026 • Presupuesto en S/</p>
+      </div>
+    </div>
+    
+
+    <div class="current-date-box">
+      <div id="date-str" class="date"> </div>
+      <div id="day-str" class="day"></div>
+    </div>
+
+    
+    <div class="topbar-actions">
+      <button id="btnExportCsv" class="btn btn-secondary">Exportar CSV</button>
+      <button id="btnResetData" class="btn btn-danger-outline">Restaurar Datos</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="dashboard">Resumen </button>
+    <button class="tab-btn" data-tab="diarios">Gastos Diarios</button>
+    <button class="tab-btn" data-tab="fijos">Gastos Fijos y Préstamos</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- ==================== PESTAÑA 1: RESUMEN ==================== -->
+    <section id="tab-dashboard" class="tab-content active">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span>INGRESO TOTAL (S/)</span>
+            <small class="badge-edit">Editable</small>
+          </div>
+          <div class="kpi-input-wrap">
+            <span>S/</span>
+            <input type="number" id="inputIngresos" step="0.10" min="0" value="1500.00" />
+          </div>
+          <p class="kpi-foot">Presupuesto mensual</p>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span>GASTOS VARIABLES</span>
+          </div>
+          <div class="kpi-value text-amber" id="kpiVariables">S/ 0.00</div>
+          <p class="kpi-foot" id="kpiVariablesSub">0 registros en noviembre</p>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span>GASTOS FIJOS (MES)</span>
+          </div>
+          <div class="kpi-value text-cyan" id="kpiFijos">S/ 0.00</div>
+          <p class="kpi-foot" id="kpiFijosSub">Pagado: S/ 0.00 • Pendiente: S/ 0.00</p>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-header">
+            <span>SALDO DISPONIBLE</span>
+          </div>
+          <div class="kpi-value text-green" id="kpiSaldo">S/ 0.00</div>
+          <p class="kpi-foot" id="kpiSaldoSub">Ingresos - (Variables + Fijos)</p>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <!-- Gráfico Semanal vs Límite -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Gasto Semanal</h2>
+              <p class="panel-desc">Las semanas en rojo superan el límite establecido</p>
+            </div>
+            <label class="limit-control">
+              Límite (S/):
+              <input type="number" id="inputLimiteSemanal" step="5" min="10" value="90" />
+            </label>
+          </div>
+          <div id="chartSemanal" class="weekly-chart"></div>
+        </div>
+
+        <!-- Gráfico por Día de la Semana -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Gasto por Día de la Semana</h2>
+              <p class="panel-desc">Acumulado de domingo a sábado</p>
+            </div>
+          </div>
+          <div id="chartDias" class="days-chart"></div>
+
+          <div class="category-breakdown">
+            <h3>Distribución por Categoría</h3>
+            <div id="categoryBars" class="cat-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PESTAÑA 2: GASTOS DIARIOS ==================== -->
+    <section id="tab-diarios" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Registrar Nuevo Gasto</h2>
+            <p class="panel-desc">El día y la semana se calculan automáticamente según la fecha</p>
+          </div>
+        </div>
+
+        <form id="formGastoDiario" class="form-grid">
+          <div class="form-group">
+            <label for="gastoFecha">Fecha</label>
+            <input type="date" id="gastoFecha" required value="2026-11-14" />
+          </div>
+          <div class="form-group">
+            <label for="gastoCategoria">Categoría</label>
+            <select id="gastoCategoria" required>
+              <option value="Víveres">Víveres</option>
+              <option value="Almuerzo">Almuerzo</option>
+              <option value="Taxi">Taxi</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="gastoDescripcion">Descripción</label>
+            <input type="text" id="gastoDescripcion" placeholder="Compras mercado, movilidad..." required />
+          </div>
+          <div class="form-group">
+            <label for="gastoMonto">Monto (S/)</label>
+            <input type="number" id="gastoMonto" step="0.10" min="0.10" placeholder="0.00" required />
+          </div>
+          <div class="form-group form-action">
+            <button type="submit" class="btn btn-primary">Agregar Gasto</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Historial de Gastos</h2>
+            <p class="panel-desc">Filas resaltadas en rojo suave indican días que superan S/ 20.00</p>
+          </div>
+          <div class="filters">
+            <select id="filtroDia">
+              <option value="todos">Todos los días</option>
+              <option value="0">Domingo</option>
+              <option value="1">Lunes</option>
+              <option value="2">Martes</option>
+              <option value="3">Miércoles</option>
+              <option value="4">Jueves</option>
+              <option value="5">Viernes</option>
+              <option value="6">Sábado</option>
+            </select>
+            <select id="filtroSemana">
+              <option value="todas">Todas las semanas</option>
+              <option value="1">Semana 1</option>
+              <option value="2">Semana 2</option>
+              <option value="3">Semana 3</option>
+              <option value="4">Semana 4</option>
+              <option value="5">Semana 5</option>
+            </select>
+            <select id="filtroCategoria">
+              <option value="todas">Todas las categorías</option>
+              <option value="Víveres">Víveres</option>
+              <option value="Almuerzo">Almuerzo</option>
+              <option value="Taxi">Taxi</option>
+              <option value="Otros">Otros</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Día</th>
+                <th>Semana</th>
+                <th>Categoría</th>
+                <th>Descripción</th>
+                <th class="text-right">Monto (S/)</th>
+                <th class="text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDiarios"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5"><strong>TOTAL FILTRADO</strong></td>
+                <td class="text-right"><strong id="totalDiariosFiltrado">S/ 0.00</strong></td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PESTAÑA 3: FIJOS Y PRÉSTAMOS ==================== -->
+    <section id="tab-fijos" class="tab-content">
+      <div class="two-col-grid">
+        <!-- Gastos Fijos -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Gastos Fijos del Mes</h2>
+              <p class="panel-desc">Servicios, alquiler y compromisos recurrentes</p>
+            </div>
+          </div>
+
+          <form id="formGastoFijo" class="inline-form">
+            <input type="text" id="fijoConcepto" placeholder="Concepto (ej. Internet)" required />
+            <input type="number" id="fijoMonto" step="0.10" min="0.10" placeholder="A pagar (S/)" required />
+            <button type="submit" class="btn btn-primary">Agregar</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th class="text-right">A Pagar</th>
+                  <th class="text-right">Pagado</th>
+                  <th class="text-right">Restante</th>
+                  <th class="text-center">Estado</th>
+                  <th class="text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyFijos"></tbody>
+              <tfoot>
+                <tr>
+                  <td><strong>TOTAL FIJOS</strong></td>
+                  <td class="text-right"><strong id="totalFijosPagar">S/ 0.00</strong></td>
+                  <td class="text-right"><strong id="totalFijosPagado">S/ 0.00</strong></td>
+                  <td class="text-right"><strong id="totalFijosRestante">S/ 0.00</strong></td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Préstamos y Yape -->
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Control de Préstamos, Deudas y Yape</h2>
+              <p class="panel-desc">Saldos pendientes con terceros y billetera digital</p>
+            </div>
+          </div>
+
+          <form id="formPrestamo" class="inline-form">
+            <input type="text" id="prestamoPersona" placeholder="Persona / Concepto" required />
+            <select id="prestamoTipo">
+              <option value="Préstamo">Préstamo</option>
+              <option value="Deuda">Deuda</option>
+              <option value="Saldo Yape">Saldo Yape</option>
+            </select>
+            <select id="prestamoMedio">
+              <option value="Yape">Yape</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+            <input type="number" id="prestamoMonto" step="0.10" min="0.10" placeholder="Monto (S/)" required />
+            <button type="submit" class="btn btn-primary">Agregar</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Persona / Concepto</th>
+                  <th>Tipo</th>
+                  <th>Medio</th>
+                  <th class="text-right">Monto (S/)</th>
+                  <th class="text-center">Estado</th>
+                  <th class="text-center">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPrestamos"></tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3"><strong>TOTAL PENDIENTE</strong></td>
+                  <td class="text-right"><strong id="totalPrestamosPendiente">S/ 0.00</strong></td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
